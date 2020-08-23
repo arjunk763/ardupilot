@@ -30,6 +30,10 @@
 #include <uORB/topics/esc_status.h>
 #endif
 
+ /******************ARJUN CODE CHANGE******************/
+#define EXTRA_BUFF 10
+ /******************ARJUN CODE CHANGE******************/
+
 #include "DFMessageWriter.h"
 
 class DataFlash_Backend;
@@ -155,6 +159,12 @@ public:
     void Log_Write(const char *name, const char *labels, const char *units, const char *mults, const char *fmt, ...);
     void Log_WriteV(const char *name, const char *labels, const char *units, const char *mults, const char *fmt, va_list arg_list);
 
+    /******************ARJUN CODE CHANGE******************/
+    void filter_current_over_time(uint64_t time_us, float temp);
+    float moving_average_filter(float *ptrnumbers, long *ptrsum, uint16_t _pos, uint16_t _len, float curr_nextinstane);
+    void log_write_new_average(float newavg_curr_point,uint64_t time_us);
+    /******************ARJUN CODE CHANGE******************/
+
     // This structure provides information on the internal member data of a PID for logging purposes
     struct PID_Info {
         float desired;
@@ -199,6 +209,7 @@ public:
         AP_Int8 log_disarmed;
         AP_Int8 log_replay;
         AP_Int8 mav_bufsize; // in kilobytes
+        AP_Int8 filt_curr; //aus code change
     } _params;
 
     const struct LogStructure *structure(uint16_t num) const;
@@ -363,6 +374,28 @@ private:
     // start page of log data
     uint16_t _log_data_page;
 
+    /******************ARJUN CODE CHANGE ******************/
+    //adding  variable to be used in the code for moving average filter
+
+    //length for averaging = param.filt_curr.get()*10, 10 because this loop must be called @10hz
+    uint16_t len_avg ;
+
+    //counter that represent running instance
+    uint16_t counter_avg;
+
+    //index position in the moving average array
+    uint16_t pos_avg;
+
+    //this is the averaged current value  generated based on time slot in parameter
+    float newAvg_curr_point;
+
+    //sum of current points in time window for averaging
+    long sum;
+
+    //variable for reseting the buffer array in the code to save memory space
+    uint8_t size_array2;
+
+    /****************** ARJUN CODE CHANGE ******************/
     GCS_MAVLINK *_log_sending_link;
 
     bool should_handle_log_message();

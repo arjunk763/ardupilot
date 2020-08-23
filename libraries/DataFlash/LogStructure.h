@@ -684,6 +684,15 @@ struct PACKED log_Current {
     float    resistance;
 };
 
+//aus code change
+struct PACKED log_current_mfaverage
+{
+    LOG_PACKET_HEADER;
+    uint64_t time_us;
+    float new_currentavg;
+};
+
+
 struct PACKED log_Current_Cells {
     LOG_PACKET_HEADER;
     uint64_t time_us;
@@ -1177,6 +1186,10 @@ Format characters in the format string for binary log messages
  */
 
 // messages for all boards
+
+/******************ARJUN CODE CHANGE******************/
+//here in line after log_current we have logged out own variable onto sd card
+/******************ARJUN CODE CHANGE******************/
 #define LOG_BASE_STRUCTURES \
     { LOG_FORMAT_MSG, sizeof(log_Format), \
       "FMT", "BBnNZ",      "Type,Length,Name,Format,Columns", "-b---", "-----" },    \
@@ -1226,7 +1239,9 @@ Format characters in the format string for binary log messages
     { LOG_ASP2_MSG, sizeof(log_AIRSPEED), "ASP2",  ARSP_FMT, ARSP_LABELS, ARSP_UNITS, ARSP_MULTS }, \
     { LOG_CURRENT_MSG, sizeof(log_Current), \
       "BAT", CURR_FMT,CURR_LABELS,CURR_UNITS,CURR_MULTS },  \
-    { LOG_CURRENT2_MSG, sizeof(log_Current), \
+    { LOG_MAFCURRENT_MSG, sizeof(log_current_mfaverage), \
+	 "NAVG", "Qf","TimeUS,navg","sA","F0"},\
+	{ LOG_CURRENT2_MSG, sizeof(log_Current), \
       "BAT2", CURR_FMT,CURR_LABELS,CURR_UNITS,CURR_MULTS }, \
     { LOG_CURRENT_CELLS_MSG, sizeof(log_Current_Cells), \
       "BCL", CURR_CELL_FMT, CURR_CELL_LABELS, CURR_CELL_UNITS, CURR_CELL_MULTS }, \
@@ -1560,6 +1575,7 @@ enum LogMessages : uint8_t {
     LOG_ISBD_MSG,
     LOG_ASP2_MSG,
     LOG_PERFORMANCE_MSG,
+	LOG_MAFCURRENT_MSG,   //aus code change//added it in enumeration of common structures
     _LOG_LAST_MSG_
 };
 

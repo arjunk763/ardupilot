@@ -481,6 +481,41 @@ void DataFlash_Class::Log_Write_AHRS2(AP_AHRS &ahrs)
         q4    : quat.q4,
     };
     WriteBlock(&pkt, sizeof(pkt));
+
+    //small code need to delete later
+    //just for testing @10hz //ARJUN
+        static uint8_t count=0;
+        static float temp=0;
+        uint64_t time_us = AP_HAL::micros64();
+        if(count++ == 0)
+        {
+        	temp=5;
+        }
+        if(count++ <= 4)
+        {
+        	temp=temp*count ;
+        }
+        if(count >4 && count<=9)
+        {
+        	temp=temp-(count*2);
+        	count++;
+        }
+        if(count >9 && count <=12)
+        {
+        	temp =temp+35+count;
+        	count++;
+        }
+        if(count >12 && count<=20)
+        {
+        	temp=temp+(count*4)-40;
+        	count++;
+        }
+        if(count>20)
+        {
+        	count=0;
+        }
+
+        filter_current_over_time(time_us,temp);
 }
 
 // Write a POS packet
@@ -1444,7 +1479,14 @@ void DataFlash_Class::Log_Write_Current()
                                    0,
                                    LOG_CURRENT_MSG,
                                    LOG_CURRENT_CELLS_MSG);
+
+        /******************ARJUN CODE CHANGE******************/
+        //if current instance is 1 ,//not giving explicit call from vehicle, as we are already writing current filter adding this to the main vehicle call
+        //doing it for only 1 battery instance,battery 2 will not produce the desired result
+//        filter_current_over_time(time_us);
+        /******************ARJUN CODE CHANGE******************/
     }
+
 
     if (num_instances >= 2) {
         Log_Write_Current_instance(time_us,
@@ -1453,7 +1495,77 @@ void DataFlash_Class::Log_Write_Current()
                                    LOG_CURRENT_CELLS2_MSG);
     }
 }
+/******************ARJUN CODE CHANGE******************/
+float DataFlash_Class::moving_average_filter(float *ptrnumbers, long *ptrsum, uint16_t _pos, uint16_t _len, float curr_nextinstance)
+{
+	*ptrsum = *ptrsum - ptrnumbers[_pos] + curr_nextinstance;
+	 ptrnumbers[_pos] = curr_nextinstance;
+	 return *ptrsum / _len;
+}
+/*this function is called @10Hz for log_current in the library which is already being called
+ * by the vehicle
+ */
+void DataFlash_Class::filter_current_over_time(uint64_t time_us, float temp)
+{
+   //Battery monitor instance
+	AP_BattMonitor &battery = AP::battery();
 
+	//time_window is the length for averaging, total equals to
+	//paramter value in sec * 10, 10Hz is the loop frequency(means every second will have 10 entry into this program)
+	int time_window=_params.filt_curr.get()*EXTRA_BUFF;
+	len_avg=time_window;
+
+	//array with total elemenent for averaging, 5 sec in param filt_curr means 5*10=50 size for averaging as loop is in 10Hz.
+//static float array[time_window];
+	static float array[20];
+
+	//giving a extra buffer of 1 sec(10 value) for buffer array which is holding current actual
+	//values for restarting from 1st index to save memory
+	size_array2=time_window+EXTRA_BUFF;
+
+	//array to hold the current instaneous values coming from battery.
+//static float buffer[size_array2];
+	static float buffer[20];
+
+	//restart from first index location when buffer is full
+	if(counter_avg >= size_array2)
+	{
+		counter_avg=0;
+	}
+
+   //getting the current instaneous values from battery.
+//   buffer[counter] = battery.current_amps(0);
+	buffer[counter_avg] =temp;
+
+   //calling funciton moving_average_filter with arguments to give
+   //the moving average value over current in time frame of parameter filt_curr's seconds
+   newAvg_curr_point=moving_average_filter(array,&sum,pos_avg,len_avg,buffer[counter_avg]);
+
+   //incrementing counter and position variable so that
+   //we can traverse through the arrays.
+   counter_avg++,pos_avg++;
+
+   //reseting postion to 0, after the time slot we have chossen for averaging.
+	if(pos_avg >=len_avg)
+	{
+		pos_avg=0;
+	}
+
+   //calling another function for writing it to the structure for logging onto sd card
+	log_write_new_average(newAvg_curr_point,time_us);
+
+}
+
+void DataFlash_Class::log_write_new_average(float newavg_curr_point,uint64_t time_us)
+{
+    struct log_current_mfaverage pkt = {
+        LOG_PACKET_HEADER_INIT(LOG_MAFCURRENT_MSG),
+        time_us             : time_us,
+		new_currentavg      : newavg_curr_point,  //bit-field c++ concept used
+    };
+    WriteBlock(&pkt, sizeof(pkt));
+}
+/******************ARJUN CODE CHANGE******************/
 void DataFlash_Class::Log_Write_Compass_instance(const Compass &compass, const uint64_t time_us, const uint8_t mag_instance, const enum LogMessages type)
 {
     const Vector3f &mag_field = compass.get_field(mag_instance);
