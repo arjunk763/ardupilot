@@ -684,14 +684,14 @@ struct PACKED log_Current {
     float    resistance;
 };
 
-//aus code change
+/******************ARJUN CODE CHANGE******************/
 struct PACKED log_current_mfaverage
 {
     LOG_PACKET_HEADER;
     uint64_t time_us;
     float new_currentavg;
 };
-
+/******************ARJUN CODE CHANGE******************/
 
 struct PACKED log_Current_Cells {
     LOG_PACKET_HEADER;
@@ -1575,7 +1575,7 @@ enum LogMessages : uint8_t {
     LOG_ISBD_MSG,
     LOG_ASP2_MSG,
     LOG_PERFORMANCE_MSG,
-	LOG_MAFCURRENT_MSG,   //aus code change//added it in enumeration of common structures
+	LOG_MAFCURRENT_MSG,   /******************ARJUN CODE CHANGE******************///added it in enumeration of common structures
     _LOG_LAST_MSG_
 };
 

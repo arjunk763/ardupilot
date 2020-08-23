@@ -209,7 +209,7 @@ public:
         AP_Int8 log_disarmed;
         AP_Int8 log_replay;
         AP_Int8 mav_bufsize; // in kilobytes
-        AP_Int8 filt_curr; //aus code change
+        AP_Int8 filt_curr; /******************ARJUN CODE CHANGE******************/
     } _params;
 
     const struct LogStructure *structure(uint16_t num) const;

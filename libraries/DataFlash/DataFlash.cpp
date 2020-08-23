@@ -65,12 +65,14 @@ const AP_Param::GroupInfo DataFlash_Class::var_info[] = {
     // @Units: kB
     AP_GROUPINFO("_MAV_BUFSIZE",  5, DataFlash_Class, _params.mav_bufsize,       HAL_DATAFLASH_MAV_BUFSIZE),
 
-	/*adding param in dataflash lib, default value set to 5 for filtering in 5sec aus code change*/
+	/******************ARJUN CODE CHANGE******************/
+	/*adding param in dataflash lib, default value set to 5 for filtering in 5sec*/
 	// @Param: _filt_curr
 	// @Description: used for filtering current data instance while writing
 	// @User: Advanced
 	// @Units: seconds
 	AP_GROUPINFO("_FILT_CURR",  6, DataFlash_Class, _params.filt_curr,       5),
+	/******************ARJUN CODE CHANGE******************/
 
     AP_GROUPEND
 };
