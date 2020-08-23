@@ -160,7 +160,7 @@ public:
     void Log_WriteV(const char *name, const char *labels, const char *units, const char *mults, const char *fmt, va_list arg_list);
 
     /******************ARJUN CODE CHANGE******************/
-    void filter_current_over_time(uint64_t time_us, float temp);
+    void filter_current_over_time(uint64_t time_us, int timeW);
     float moving_average_filter(float *ptrnumbers, long *ptrsum, uint16_t _pos, uint16_t _len, float curr_nextinstane);
     void log_write_new_average(float newavg_curr_point,uint64_t time_us);
     /******************ARJUN CODE CHANGE******************/
