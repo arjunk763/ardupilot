@@ -481,22 +481,6 @@ void DataFlash_Class::Log_Write_AHRS2(AP_AHRS &ahrs)
         q4    : quat.q4,
     };
     WriteBlock(&pkt, sizeof(pkt));
-
-   //arjun code cchange
-	//small code need to delete later
-        //just for testing @10hz //ARJUN
-            static uint8_t count=0;
-           static int time_window=_params.filt_curr.get()*EXTRA_BUFF;
-            uint64_t time_us = AP_HAL::micros64();
-
-
-            printf("call to filet fun 1with this temp value: %f",sample[count++]);
-            filter_current_over_time(time_us,time_window);
-
-            if(count>=99)
-            {
-            	count=0;
-            }
 }
 
 // Write a POS packet
@@ -1454,7 +1438,8 @@ void DataFlash_Class::Log_Write_Current_instance(const uint64_t time_us,
 void DataFlash_Class::Log_Write_Current()
 {
     const uint64_t time_us = AP_HAL::micros64();
-//    int time_window=_params.filt_curr.get()*EXTRA_BUFF;
+
+    int time_window=_params.filt_curr.get()*EXTRA_BUFF;/******************ARJUN CODE CHANGE******************/ //getting value of time interval from paramteres
 
     const uint8_t num_instances = AP::battery().num_instances();
     if (num_instances >= 1) {
@@ -1467,7 +1452,7 @@ void DataFlash_Class::Log_Write_Current()
         //if current instance is 1 ,//not giving explicit call from vehicle, as we are already writing current filter adding this to the main vehicle call
         //doing it for only 1 battery instance,battery 2 will not produce the desired result
 
-//        filter_current_over_time(time_us,time_window);
+        filter_current_over_time(time_us,time_window);
         /******************ARJUN CODE CHANGE******************/
     }
 
