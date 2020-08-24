@@ -399,6 +399,7 @@ private:
 
     //holds avergaing time period
     int timeW;
+
     /****************** ARJUN CODE CHANGE ******************/
 
     GCS_MAVLINK *_log_sending_link;

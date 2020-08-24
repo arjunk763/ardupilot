@@ -1522,6 +1522,7 @@ void DataFlash_Class::filter_current_over_time()
    //getting the current instaneous values from battery. //for just 1 battery instance not for 2 batteries.
       buffer[counter_avg] = battery.current_amps(0);
 
+
    //calling funciton moving_average_filter with arguments to give
    //the moving average value over current in time frame of parameter filt_curr's seconds
    newAvg_curr_point=moving_average_filter(&array,&sum,pos_avg,len_avg,buffer[counter_avg]);

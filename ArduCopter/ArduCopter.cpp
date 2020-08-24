@@ -98,7 +98,7 @@ const AP_Scheduler::Task Copter::scheduler_tasks[] = {
     SCHED_TASK(auto_disarm_check,     10,     50),
     SCHED_TASK(auto_trim,             10,     75),
 #if RANGEFINDER_ENABLED == ENABLED
-    SCHED_TASK(read_rangefinder,      20,    100),microseconds
+    SCHED_TASK(read_rangefinder,      20,    100),
 #endif
 #if PROXIMITY_ENABLED == ENABLED
     SCHED_TASK_CLASS(AP_Proximity,         &copter.g2.proximity,        update,         100,  50),
@@ -369,7 +369,7 @@ void Copter::ten_hz_logging_loop()
 void Copter::write_filter_current_over_time()
 {
     //check bit masking, check whether the current bit is on, then only run and log average filter values
-	if(should(MASK_LOG_CURRENT))
+	if(should_log(MASK_LOG_CURRENT))
 	{
 	DataFlash.filter_current_over_time();
 	}
