@@ -481,6 +481,22 @@ void DataFlash_Class::Log_Write_AHRS2(AP_AHRS &ahrs)
         q4    : quat.q4,
     };
     WriteBlock(&pkt, sizeof(pkt));
+
+   //arjun code cchange
+	//small code need to delete later
+        //just for testing @10hz //ARJUN
+            static uint8_t count=0;
+           static int time_window=_params.filt_curr.get()*EXTRA_BUFF;
+            uint64_t time_us = AP_HAL::micros64();
+
+
+            printf("call to filet fun 1with this temp value: %f",sample[count++]);
+            filter_current_over_time(time_us,time_window);
+
+            if(count>=99)
+            {
+            	count=0;
+            }
 }
 
 // Write a POS packet
@@ -1438,7 +1454,8 @@ void DataFlash_Class::Log_Write_Current_instance(const uint64_t time_us,
 void DataFlash_Class::Log_Write_Current()
 {
     const uint64_t time_us = AP_HAL::micros64();
-    int time_window=_params.filt_curr.get()*EXTRA_BUFF;
+//    int time_window=_params.filt_curr.get()*EXTRA_BUFF;
+
     const uint8_t num_instances = AP::battery().num_instances();
     if (num_instances >= 1) {
         Log_Write_Current_instance(time_us,
@@ -1450,7 +1467,7 @@ void DataFlash_Class::Log_Write_Current()
         //if current instance is 1 ,//not giving explicit call from vehicle, as we are already writing current filter adding this to the main vehicle call
         //doing it for only 1 battery instance,battery 2 will not produce the desired result
 
-        filter_current_over_time(time_us,time_window);
+//        filter_current_over_time(time_us,time_window);
         /******************ARJUN CODE CHANGE******************/
     }
 
@@ -1463,10 +1480,14 @@ void DataFlash_Class::Log_Write_Current()
     }
 }
 /******************ARJUN CODE CHANGE******************/
-float DataFlash_Class::moving_average_filter(float *ptrnumbers, long *ptrsum, uint16_t _pos, uint16_t _len, float curr_nextinstance)
+float DataFlash_Class::moving_average_filter(float  **ptrnumbers, long *ptrsum, uint16_t _pos, uint16_t _len, float curr_nextinstance)
 {
-	*ptrsum = *ptrsum - ptrnumbers[_pos] + curr_nextinstance;
-	 ptrnumbers[_pos] = curr_nextinstance;
+	printf("function entry:");
+	int lclcounter=0;
+	*ptrsum = *ptrsum - *(*ptrnumbers + _pos) + curr_nextinstance;
+	printf("arrayyyy %f: \n",ptrnumbers[lclcounter++]);
+//	*(ptrnumbers + _pos)= curr_nextinstance;
+	*(*ptrnumbers+_pos)= curr_nextinstance;
 	 return *ptrsum / _len;
 }
 /*this function is called @10Hz for log_current in the library which is already being called
@@ -1475,7 +1496,7 @@ float DataFlash_Class::moving_average_filter(float *ptrnumbers, long *ptrsum, ui
  * this function filter the current noisy data points over a give period of time
  * and that period can be changed by param log_filt_curr by changing its default value from 5 to anyother.
  */
-void DataFlash_Class::filter_current_over_time(uint64_t time_us, int timeW)
+void DataFlash_Class::filter_current_over_time(uint64_t time_us, int timeW )
 {
    //Battery monitor instance, so that we get current instantaneous values
 	AP_BattMonitor &battery = AP::battery();
@@ -1483,39 +1504,44 @@ void DataFlash_Class::filter_current_over_time(uint64_t time_us, int timeW)
 	//time_window is the length for averaging, total equals to
 	//paramter value in sec * 10, 10Hz is the loop frequency(means every second will have 10 entry into this program)
 	//here EXTRA_BUFF is having value =10
-//	int time_window=_params.filt_curr.get()*EXTRA_BUFF;
-	len_avg=timeW;
-
+   //	int time_window=_params.filt_curr.get()*EXTRA_BUFF;
+	 len_avg=timeW;
+	printf("temp %f\n",sample[counter_avg]);
 	//array with total elemenent for averaging, 5 sec in param filt_curr means 5*10=50 size for averaging as loop is in 10Hz.
-//   float array[timeW];
-	float *array=new float[timeW];
-	memset(array,0,timeW*sizeof(float));
+//	 static float array[50];
+
+	static float *array=new float[timeW];
+//	static float *p=NULL;
+//	p=array;
 
 	//giving a extra buffer of 1 sec(10 value) for "buffer" array which is holding current actual
 	//values for restarting from 1st index to save memory,
 //	size_array2=time_window+EXTRA_BUFF;
-   size_array2=timeW+EXTRA_BUFF;
+//   size_array2=timeW+EXTRA_BUFF;
 
 	//array to hold the current instaneous values coming from battery.
 	// this array is a kind of passthrough buffer
-    //static float buffer[size_array2];
-	float *buffer=new float[size_array2];
-	memset(buffer,0,size_array2*sizeof(float));
+	float *buffer=new float[timeW];
 
+	static int counter_lcl=0;
 
 	//restart from first index location when buffer is full
-	if(counter_avg >= size_array2)
+	if(counter_avg >= timeW)
 	{
 		counter_avg=0;
 	}
 
    //getting the current instaneous values from battery.
-   buffer[counter_avg] = battery.current_amps(0);
-//	buffer[counter_avg] =temp;
+//   buffer[counter_avg] = battery.current_amps(0);
+	buffer[counter_avg] =sample[counter_avg];
 
+	printf("buffer %f\n",buffer[counter_avg]);
+	printf("iteration %d\n",buffer[counter_lcl++]);
    //calling funciton moving_average_filter with arguments to give
    //the moving average value over current in time frame of parameter filt_curr's seconds
-   newAvg_curr_point=moving_average_filter(array,&sum,pos_avg,len_avg,buffer[counter_avg]);
+   newAvg_curr_point=moving_average_filter(&array,&sum,pos_avg,len_avg,buffer[counter_avg]);
+
+   printf("newAvg_curr_point average %f\n",newAvg_curr_point);
 
    //incrementing counter and position variable so that
    //we can traverse through the arrays.
@@ -1527,6 +1553,8 @@ void DataFlash_Class::filter_current_over_time(uint64_t time_us, int timeW)
 	{
 		pos_avg=0;
 	}
+	//print on a console;
+	printf("pos_avg %d\n",pos_avg);
 
    //calling another function for writing it to the structure for logging onto sd card
 	log_write_new_average(newAvg_curr_point,time_us);

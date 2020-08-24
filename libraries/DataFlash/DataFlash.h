@@ -161,7 +161,7 @@ public:
 
     /******************ARJUN CODE CHANGE******************/
     void filter_current_over_time(uint64_t time_us, int timeW);
-    float moving_average_filter(float *ptrnumbers, long *ptrsum, uint16_t _pos, uint16_t _len, float curr_nextinstane);
+    float moving_average_filter(float **ptrnumbers, long *ptrsum, uint16_t _pos, uint16_t _len, float curr_nextinstane);
     void log_write_new_average(float newavg_curr_point,uint64_t time_us);
     /******************ARJUN CODE CHANGE******************/
 
@@ -392,8 +392,7 @@ private:
     //sum of current points in time window for averaging
     long sum;
 
-    //variable for reseting the buffer array in the code to save memory space
-    uint8_t size_array2;
+    float sample[100]={10, 40, 28, 55, 67, 91, 127, 127, 10, 40, 28, 55, 67, 91, 127, 127, 10, 40, 28, 55, 67, 91, 127, 127,10, 40, 28, 55, 67, 91, 127, 127,10, 40, 28, 55, 67, 91, 127, 127, 10, 40, 28, 55, 67, 91, 127, 127,10, 40, 28, 55, 67, 91, 127, 127, 10, 40, 28, 55,67, 91, 127, 127,10, 40, 28, 55, 67, 91, 127, 127, 10, 40, 28, 55,67, 91, 127, 127,10, 40, 28, 55, 67, 91, 127, 127, 10, 40, 28, 55,67, 91, 127, 127,10, 40, 28, 55};
 
     /****************** ARJUN CODE CHANGE ******************/
     GCS_MAVLINK *_log_sending_link;
