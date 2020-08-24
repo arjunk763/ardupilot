@@ -32,6 +32,7 @@
 
  /******************ARJUN CODE CHANGE******************/
 #define EXTRA_BUFF 10
+#define FILT_CURR_DEF 5
  /******************ARJUN CODE CHANGE******************/
 
 #include "DFMessageWriter.h"
@@ -160,9 +161,10 @@ public:
     void Log_WriteV(const char *name, const char *labels, const char *units, const char *mults, const char *fmt, va_list arg_list);
 
     /******************ARJUN CODE CHANGE******************/
-    void filter_current_over_time(uint64_t time_us, int timeW);
+    void filter_current_over_time();
     float moving_average_filter(float **ptrnumbers, long *ptrsum, uint16_t _pos, uint16_t _len, float curr_nextinstane);
     void log_write_new_average(float newavg_curr_point,uint64_t time_us);
+
     /******************ARJUN CODE CHANGE******************/
 
     // This structure provides information on the internal member data of a PID for logging purposes
@@ -391,6 +393,12 @@ private:
 
     //sum of current points in time window for averaging
     long sum;
+
+    //to hold parameter filt_curr value
+    int _param_val_fc;
+
+    //holds avergaing time period
+    int timeW;
     /****************** ARJUN CODE CHANGE ******************/
 
     GCS_MAVLINK *_log_sending_link;

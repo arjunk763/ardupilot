@@ -1439,21 +1439,12 @@ void DataFlash_Class::Log_Write_Current()
 {
     const uint64_t time_us = AP_HAL::micros64();
 
-    int time_window=_params.filt_curr.get()*EXTRA_BUFF;/******************ARJUN CODE CHANGE******************/ //getting value of time interval from paramteres
-
     const uint8_t num_instances = AP::battery().num_instances();
     if (num_instances >= 1) {
         Log_Write_Current_instance(time_us,
                                    0,
                                    LOG_CURRENT_MSG,
                                    LOG_CURRENT_CELLS_MSG);
-
-        /******************ARJUN CODE CHANGE******************/
-        //if current instance is 1 ,//not giving explicit call from vehicle, as we are already writing current filter adding this to the main vehicle call
-        //doing it for only 1 battery instance,battery 2 will not produce the desired result
-
-        filter_current_over_time(time_us,time_window);
-        /******************ARJUN CODE CHANGE******************/
     }
 
 
@@ -1483,9 +1474,33 @@ float DataFlash_Class::moving_average_filter(float  **ptrnumbers, long *ptrsum, 
  * this function filter the current noisy data points over a give period of time
  * and that period can be changed by param log_filt_curr by changing its default value from 5 to anyother.
  */
-void DataFlash_Class::filter_current_over_time(uint64_t time_us, int timeW )
+void DataFlash_Class::filter_current_over_time()
 {
-   //Battery monitor instance, so that we get current instantaneous values
+	//getting number of battery instance connect to pixhawk
+	//calculating for only one battery as of now.
+    const uint8_t num_instances = AP::battery().num_instances();
+
+    //sanity check on whether or not the battery is connected to pixhawk
+    if (num_instances < 1)
+    {
+    	return;
+    }
+	//getting boot microsecond since bootup
+	const uint64_t time_us = AP_HAL::micros64();
+
+	//get value from parameters
+    _param_val_fc=_params.filt_curr.get();
+
+    //    sanity check to check whether enabled of disabled from the parameter
+    //   the boundary value of range is already been checked by var_info of params tables
+    if(_param_val_fc ==0)
+    {
+    	return;
+
+    }
+    timeW=_param_val_fc *EXTRA_BUFF; //now we now we are calling it separently from schduler @10hz, multiplited by loop
+
+	//Battery monitor instance, so that we get current instantaneous values
 	AP_BattMonitor &battery = AP::battery();
 
 	 //time_window is the length for averaging, total equals to paramter value in sec * 10, 10Hz is the loop frequency(means every second will have 10 entry into this program)

@@ -943,6 +943,10 @@ private:
     void userhook_auxSwitch2(uint8_t ch_flag);
     void userhook_auxSwitch3(uint8_t ch_flag);
 
+    /******************ARJUN CODE CHANGE******************/
+    void write_filter_current_over_time(); //function calling log filter current from the main vehicle file
+    /******************ARJUN CODE CHANGE******************/
+
 #include "mode.h"
 
     Mode *flightmode;

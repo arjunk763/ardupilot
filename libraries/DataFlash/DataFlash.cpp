@@ -71,7 +71,7 @@ const AP_Param::GroupInfo DataFlash_Class::var_info[] = {
 	// @Description: used for filtering current data instance while writing
 	// @User: Advanced
 	// @Units: seconds
-	AP_GROUPINFO("_FILT_CURR",  6, DataFlash_Class, _params.filt_curr,       5),
+	AP_GROUPINFO("_FILT_CURR",  6, DataFlash_Class, _params.filt_curr,       FILT_CURR_DEF),
 	/******************ARJUN CODE CHANGE******************/
 
     AP_GROUPEND

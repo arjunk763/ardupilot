@@ -98,7 +98,7 @@ const AP_Scheduler::Task Copter::scheduler_tasks[] = {
     SCHED_TASK(auto_disarm_check,     10,     50),
     SCHED_TASK(auto_trim,             10,     75),
 #if RANGEFINDER_ENABLED == ENABLED
-    SCHED_TASK(read_rangefinder,      20,    100),
+    SCHED_TASK(read_rangefinder,      20,    100),microseconds
 #endif
 #if PROXIMITY_ENABLED == ENABLED
     SCHED_TASK_CLASS(AP_Proximity,         &copter.g2.proximity,        update,         100,  50),
@@ -110,6 +110,8 @@ const AP_Scheduler::Task Copter::scheduler_tasks[] = {
     SCHED_TASK(update_visual_odom,   400,     50),
 #endif
     SCHED_TASK(update_altitude,       10,    100),
+	//the following scheduler function is called a@10hz an the timeout is 100 microseconds /******************ARJUN CODE CHANGE******************/
+	SCHED_TASK(write_filter_current_over_time,    10,  100), /******************ARJUN CODE CHANGE******************/
     SCHED_TASK(run_nav_updates,       50,    100),
     SCHED_TASK(update_throttle_hover,100,     90),
 #if MODE_SMARTRTL_ENABLED == ENABLED
@@ -362,7 +364,17 @@ void Copter::ten_hz_logging_loop()
     Log_Write_Heli();
 #endif
 }
-
+/******************ARJUN CODE CHANGE******************/
+//10hz logging loop for moving average filter
+void Copter::write_filter_current_over_time()
+{
+    //check bit masking, check whether the current bit is on, then only run and log average filter values
+	if(should(MASK_LOG_CURRENT))
+	{
+	DataFlash.filter_current_over_time();
+	}
+}
+/******************ARJUN CODE CHANGE******************/
 // twentyfive_hz_logging - should be run at 25hz
 void Copter::twentyfive_hz_logging()
 {
